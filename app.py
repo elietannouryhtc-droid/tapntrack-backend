@@ -28,8 +28,8 @@ CORS(app)
 app.secret_key = os.environ.get("FLASK_SECRET", secrets.token_hex(32))
 
 # ─── Config ─────────────────────────────────────────────────────────────────
-SUPABASE_URL        = os.environ.get("SUPABASE_URL", "")
-SUPABASE_KEY        = os.environ.get("SUPABASE_KEY", "")
+SUPABASE_URL        = os.environ.get("SUPABASE_URL", "").strip()
+SUPABASE_KEY        = os.environ.get("SUPABASE_KEY", "").strip()
 MASTER_AWS_KEY_ID   = os.environ.get("MASTER_AWS_KEY_ID", "")
 MASTER_AWS_SECRET   = os.environ.get("MASTER_AWS_SECRET", "")
 MASTER_AWS_REGION   = os.environ.get("MASTER_AWS_REGION", "us-east-1")
