@@ -343,12 +343,14 @@ def admin_login():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         hashed   = hash_password(password)
+        app.logger.info(f"Login attempt: user='{username}' hash='{hashed}'")
 
         sb = get_supabase()
         result = sb.table("admin_users").select("*") \
             .eq("username", username) \
             .eq("password_hash", hashed) \
             .execute()
+        app.logger.info(f"Query result count: {len(result.data)}")
 
         if result.data:
             session["admin"] = username
