@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TapnTrack — Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #F0F4FF; }
+
+    .topbar {
+      background: #1A56A0;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .topbar-logo { color: white; font-size: 20px; font-weight: 700; }
+    .topbar-logo span { color: #7EC8FF; }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .topbar-user { color: rgba(255,255,255,0.8); font-size: 13px; }
+    .topbar-logout {
+      color: white;
+      font-size: 13px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.15);
+      padding: 6px 14px;
+      border-radius: 6px;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+    .page-title { font-size: 24px; font-weight: 700; color: #1A56A0; margin-bottom: 8px; }
+    .page-sub   { color: #666; font-size: 14px; margin-bottom: 28px; }
+
+    /* Stats row */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .stat-label { font-size: 12px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-value { font-size: 32px; font-weight: 700; color: #1A56A0; margin-top: 6px; }
+
+    /* Table */
+    .table-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #EEF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .table-header h2 { font-size: 16px; font-weight: 700; color: #222; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: #F8FAFF;
+      padding: 12px 20px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    td { padding: 14px 20px; font-size: 14px; color: #333; border-top: 1px solid #F0F0F0; }
+    tr:hover td { background: #FAFBFF; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-active   { background: #E8F5E9; color: #27AE60; }
+    .badge-suspended { background: #FEF2F2; color: #E74C3C; }
+    .badge-trial    { background: #FFF8E1; color: #F39C12; }
+
+    .btn-sm {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      display: inline-block;
+    }
+    .btn-view     { background: #EEF4FF; color: #1A56A0; }
+    .btn-suspend  { background: #FEF2F2; color: #E74C3C; }
+    .btn-activate { background: #E8F5E9; color: #27AE60; }
+
+    .empty { padding: 48px; text-align: center; color: #999; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">Tap<span>n</span>Track</div>
+  <div class="topbar-right">
+    <span class="topbar-user">👤 {{ admin }}</span>
+    <a href="/admin/logout" class="topbar-logout">Sign Out</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="page-title">Store Dashboard</div>
+  <div class="page-sub">Manage all TapnTrack installations</div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">Total Stores</div>
+      <div class="stat-value">{{ stores | length }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active Stores</div>
+      <div class="stat-value">{{ stores | selectattr('status', 'eq', 'active') | list | length }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Receipts</div>
+      <div class="stat-value">{{ stores | sum(attribute='receipt_count') }}</div>
+    </div>
+  </div>
+
+  <!-- Stores Table -->
+  <div class="table-card">
+    <div class="table-header">
+      <h2>All Stores</h2>
+    </div>
+
+    {% if stores %}
+    <table>
+      <thead>
+        <tr>
+          <th>Store Name</th>
+          <th>Status</th>
+          <th>Plan</th>
+          <th>Receipts</th>
+          <th>Last Active</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for store in stores %}
+        <tr>
+          <td><strong>{{ store.name }}</strong><br><small style="color:#999">{{ store.slug }}</small></td>
+          <td>
+            <span class="badge badge-{{ store.status }}">{{ store.status | capitalize }}</span>
+          </td>
+          <td>
+            <span class="badge badge-trial">{{ store.plan | capitalize }}</span>
+          </td>
+          <td>{{ store.receipt_count }}</td>
+          <td>{{ store.last_active[:16].replace('T', ' ') if store.last_active else 'Never' }}</td>
+          <td style="display:flex;gap:8px;align-items:center;">
+            <a href="/admin/store/{{ store.id }}" class="btn-sm btn-view">View</a>
+            <form method="POST" action="/admin/store/{{ store.id }}/toggle" style="display:inline">
+              {% if store.status == 'active' %}
+              <button type="submit" class="btn-sm btn-suspend">Suspend</button>
+              {% else %}
+              <button type="submit" class="btn-sm btn-activate">Activate</button>
+              {% endif %}
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No stores yet. Install TapnTrack at a location to get started.</div>
+    {% endif %}
+  </div>
+</div>
+
+</body>
+</html>
