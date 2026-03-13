@@ -225,8 +225,8 @@ def provision():
         "api_key": api_key,
         "bucket": bucket,
         "region": MASTER_AWS_REGION,
-        "aws_access_key_id": keys["AccessKeyId"],
-        "aws_secret_access_key": keys["SecretAccessKey"],
+        "aws_access_key_id": aws_key_id,
+        "aws_secret_access_key": aws_secret,
     }), 201
 
 
