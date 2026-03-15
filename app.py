@@ -141,6 +141,19 @@ def provision_store_aws(slug: str):
         }
     )
 
+    # Add lifecycle rule — auto-delete receipts after 24 hours
+    s3.put_bucket_lifecycle_configuration(
+        Bucket=bucket_name,
+        LifecycleConfiguration={
+            "Rules": [{
+                "ID": "auto-delete-receipts",
+                "Filter": {"Prefix": "receipts/"},
+                "Status": "Enabled",
+                "Expiration": {"Days": 1}
+            }]
+        }
+    )
+
     # Create IAM user
     iam.create_user(UserName=iam_user)
 
