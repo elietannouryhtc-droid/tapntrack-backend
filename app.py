@@ -332,7 +332,33 @@ def create_receipt():
     return jsonify({"url": short_url, "code": code}), 201
 
 
-# ─── Routes — Receipt Page ───────────────────────────────────────────────────
+# ─── Routes — PDF Proxy ──────────────────────────────────────────────────────
+
+@app.route("/pdf/<code>")
+def pdf_proxy(code):
+    """Proxy the PDF through the backend to avoid CORS issues."""
+    import requests as req
+    from flask import Response, stream_with_context
+
+    sb  = get_supabase()
+    row = sb.table("receipts").select("s3_url, expires_at").eq("code", code).execute()
+
+    if not row.data:
+        abort(404)
+
+    receipt = row.data[0]
+    expires = datetime.fromisoformat(receipt["expires_at"].replace("Z", ""))
+    if datetime.utcnow() > expires:
+        abort(410)
+
+    s3_url = receipt["s3_url"]
+    r = req.get(s3_url, stream=True, timeout=15)
+
+    return Response(
+        stream_with_context(r.iter_content(chunk_size=8192)),
+        content_type="application/pdf",
+        headers={"Content-Disposition": "inline"}
+    )
 
 @app.route("/r/<code>")
 def receipt_page(code):

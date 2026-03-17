@@ -360,7 +360,7 @@
   <!-- PDF.js from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
-    const PDF_URL   = "{{ s3_url }}";
+    const PDF_URL   = "/pdf/{{ code }}";
     const wrap      = document.getElementById("pdfCanvasWrap");
     const loading   = document.getElementById("pdfLoading");
     const controls  = document.getElementById("pdfControls");
@@ -408,7 +408,7 @@
           <div style="text-align:center;padding:20px">
             <div style="font-size:32px;margin-bottom:12px">📄</div>
             <p style="color:#7D8590;font-size:13px;margin-bottom:16px">Tap below to open your receipt</p>
-            <a href="${PDF_URL}" target="_blank" style="background:#2DD4BF;color:#0D1117;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">View Receipt PDF</a>
+            <a href="/pdf/{{ code }}" target="_blank" style="background:#2DD4BF;color:#0D1117;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">View Receipt PDF</a>
           </div>`;
       }
     }
