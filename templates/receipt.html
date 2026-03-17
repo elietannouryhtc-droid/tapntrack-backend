@@ -4,92 +4,427 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Your Receipt — {{ store_name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg:        #0D1117;
+      --surface:   #161B22;
+      --surface2:  #1C2128;
+      --border:    rgba(45, 212, 191, 0.15);
+      --teal:      #2DD4BF;
+      --teal-dim:  rgba(45, 212, 191, 0.12);
+      --teal-glow: rgba(45, 212, 191, 0.25);
+      --white:     #F0F6FC;
+      --muted:     #7D8590;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #F0F4FF; min-height: 100vh;
-      display: flex; flex-direction: column; align-items: center;
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(45,212,191,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(45,212,191,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
     }
     .header {
-      width: 100%; background: #1A56A0; padding: 18px 24px;
-      display: flex; align-items: center; justify-content: space-between;
+      width: 100%;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: rgba(13,17,23,0.95);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
-    .header-logo { color: white; font-size: 20px; font-weight: 700; }
-    .header-logo span { color: #7EC8FF; }
-    .header-store { color: rgba(255,255,255,0.75); font-size: 13px; }
-    .card {
-      background: white; border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-      margin: 24px 16px; width: calc(100% - 32px); max-width: 480px; overflow: hidden;
+    .logo { display: flex; flex-direction: column; text-decoration: none; }
+    .logo-main {
+      font-family: 'Space Mono', monospace;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1;
     }
-    .card-header { background: #1A56A0; padding: 20px 24px; color: white; }
-    .card-header h2 { font-size: 18px; font-weight: 600; }
-    .card-header p { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; }
-    .tap-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: #E8F5E9; color: #27AE60;
-      font-size: 12px; font-weight: 600; padding: 4px 10px;
-      border-radius: 20px; margin-top: 8px;
+    .logo-arrow { color: var(--teal); }
+    .logo-n     { color: #7D8590; }
+    .logo-sub   {
+      font-size: 8px;
+      font-weight: 300;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 3px;
     }
-    .tap-dot {
-      width: 8px; height: 8px; background: #27AE60;
-      border-radius: 50%; animation: pulse 1.5s infinite;
+    .store-badge {
+      font-size: 12px;
+      color: var(--teal);
+      background: var(--teal-dim);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+      padding: 20px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .status-banner {
+      background: var(--teal-dim);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: fadeSlideDown 0.4s ease;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      background: var(--teal);
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse 2s infinite;
     }
     @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.5; transform: scale(0.8); }
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--teal-glow); }
+      50%       { opacity: 0.7; box-shadow: 0 0 0 6px transparent; }
     }
-    .pdf-container { width: 100%; height: 65vh; background: #F8F9FA; }
-    .pdf-container iframe { width: 100%; height: 100%; border: none; }
-    .pdf-fallback {
-      display: none; flex-direction: column; align-items: center;
-      justify-content: center; height: 100%; padding: 32px; text-align: center;
+    .status-text { font-size: 13px; color: var(--teal); font-weight: 600; }
+    .status-sub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: fadeSlideDown 0.4s ease 0.08s both;
     }
-    .pdf-icon { font-size: 48px; margin-bottom: 16px; }
-    .pdf-fallback p { color: #555; font-size: 14px; margin-bottom: 20px; }
-    .actions { padding: 16px 24px 24px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .info-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .info-value { font-size: 14px; color: var(--white); font-weight: 500; }
+    .code-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      color: var(--teal);
+      background: var(--teal-dim);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── PDF Viewer ── */
+    .pdf-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      animation: fadeSlideDown 0.4s ease 0.16s both;
+    }
+    .pdf-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .pdf-header-left { display: flex; align-items: center; gap: 10px; }
+    .pdf-icon {
+      width: 32px; height: 32px;
+      background: var(--teal-dim);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .pdf-title { font-size: 13px; font-weight: 600; color: var(--white); }
+    .pdf-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* PDF.js canvas container */
+    .pdf-canvas-wrap {
+      width: 100%;
+      min-height: 300px;
+      background: #13181f;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 8px;
+    }
+    .pdf-canvas-wrap canvas {
+      max-width: 100%;
+      display: block;
+      border-radius: 4px;
+    }
+
+    /* PDF controls */
+    .pdf-controls {
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .pdf-ctrl-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--white);
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s;
+    }
+    .pdf-ctrl-btn:hover { border-color: var(--teal); }
+    .pdf-ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .pdf-page-info { font-size: 12px; color: var(--muted); min-width: 80px; text-align: center; }
+
+    /* Loading state */
+    .pdf-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .pdf-spinner {
+      width: 28px; height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      animation: fadeSlideDown 0.4s ease 0.24s both;
+    }
     .btn {
-      flex: 1; min-width: 120px; padding: 12px 16px; border-radius: 10px;
-      font-size: 14px; font-weight: 600; text-align: center;
-      text-decoration: none; cursor: pointer; border: none;
+      flex: 1;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      border: none;
+      text-align: center;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
     }
-    .btn-primary  { background: #1A56A0; color: white; }
-    .btn-secondary { background: #EEF4FF; color: #1A56A0; }
-    .footer { margin-top: auto; padding: 20px; text-align: center; color: #999; font-size: 12px; }
-    .footer a { color: #1A56A0; text-decoration: none; }
+    .btn-primary  { background: var(--teal); color: #0D1117; }
+    .btn-primary:hover  { background: #25b9a6; transform: translateY(-1px); }
+    .btn-secondary { background: var(--surface2); color: var(--white); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--teal); }
+    .privacy-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      animation: fadeSlideDown 0.4s ease 0.32s both;
+    }
+    .privacy-note span { font-size: 11px; color: var(--muted); line-height: 1.6; }
+    .privacy-note strong { color: var(--teal); }
+    .footer {
+      margin-top: auto;
+      padding: 24px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      position: relative;
+      z-index: 1;
+    }
+    .footer a { color: var(--teal); text-decoration: none; }
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
+
   <div class="header">
-    <div class="header-logo">Tap<span>n</span>Track</div>
-    <div class="header-store">{{ store_name }}</div>
+    <a href="https://tapntrack.com" class="logo">
+      <div class="logo-main">
+        <span class="logo-arrow">›</span><span>tap</span><span class="logo-n">n</span><span>track</span><span class="logo-arrow">‹</span>
+      </div>
+      <div class="logo-sub">Clean footprints in every transaction</div>
+    </a>
+    <div class="store-badge">{{ store_name }}</div>
   </div>
-  <div class="card">
-    <div class="card-header">
-      <h2>Your Receipt</h2>
-      <p>{{ created }} UTC &mdash; {{ store_name }}</p>
-      <div class="tap-badge"><div class="tap-dot"></div> Receipt ready</div>
-    </div>
-    <div class="pdf-container" id="pdfContainer">
-      <iframe src="{{ s3_url }}" id="pdfFrame" title="Receipt PDF"></iframe>
-      <div class="pdf-fallback" id="pdfFallback">
-        <div class="pdf-icon">🧾</div>
-        <p>Tap the button below to view or download your receipt.</p>
-        <a href="{{ s3_url }}" class="btn btn-primary" target="_blank">View Receipt PDF</a>
+
+  <div class="container">
+
+    <div class="status-banner">
+      <div class="status-dot"></div>
+      <div>
+        <div class="status-text">Receipt Ready</div>
+        <div class="status-sub">{{ created }} UTC · {{ store_name }}</div>
       </div>
     </div>
+
+    <div class="info-card">
+      <div>
+        <div class="info-label">Store</div>
+        <div class="info-value">{{ store_name }}</div>
+      </div>
+      <div class="code-badge">{{ code }}</div>
+    </div>
+
+    <div class="pdf-card">
+      <div class="pdf-header">
+        <div class="pdf-header-left">
+          <div class="pdf-icon">🧾</div>
+          <div>
+            <div class="pdf-title">Receipt Document</div>
+            <div class="pdf-sub">PDF · Auto-deletes in 24h</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PDF.js renders here -->
+      <div class="pdf-canvas-wrap" id="pdfCanvasWrap">
+        <div class="pdf-loading" id="pdfLoading">
+          <div class="pdf-spinner"></div>
+          <span>Loading receipt...</span>
+        </div>
+      </div>
+
+      <!-- Page controls (hidden until loaded) -->
+      <div class="pdf-controls" id="pdfControls" style="display:none">
+        <button class="pdf-ctrl-btn" id="btnPrev" onclick="changePage(-1)">‹</button>
+        <span class="pdf-page-info" id="pageInfo">Page 1 / 1</span>
+        <button class="pdf-ctrl-btn" id="btnNext" onclick="changePage(1)">›</button>
+      </div>
+    </div>
+
     <div class="actions">
       <a href="{{ s3_url }}" class="btn btn-primary" download>⬇ Download PDF</a>
       <button class="btn btn-secondary" onclick="shareReceipt()">↑ Share</button>
     </div>
+
+    <div class="privacy-note">
+      <span>🔒</span>
+      <span><strong>Zero personal info collected.</strong> No email, no phone number. This receipt expires automatically after 24 hours.</span>
+    </div>
+
   </div>
-  <div class="footer">Powered by <a href="https://tapntrack.com" target="_blank">TapnTrack</a> — Paperless receipts</div>
+
+  <div class="footer">
+    Powered by <a href="https://tapntrack.com" target="_blank">TapnTrack</a> — NFC Digital Receipts · Clean Footprints in Every Transaction
+  </div>
+
+  <!-- PDF.js from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
-    const frame = document.getElementById("pdfFrame");
-    const fallback = document.getElementById("pdfFallback");
-    frame.addEventListener("error", () => { frame.style.display="none"; fallback.style.display="flex"; });
-    if (/iPhone|iPad|Android/i.test(navigator.userAgent)) { frame.style.display="none"; fallback.style.display="flex"; }
+    const PDF_URL   = "{{ s3_url }}";
+    const wrap      = document.getElementById("pdfCanvasWrap");
+    const loading   = document.getElementById("pdfLoading");
+    const controls  = document.getElementById("pdfControls");
+    const pageInfo  = document.getElementById("pageInfo");
+    const btnPrev   = document.getElementById("btnPrev");
+    const btnNext   = document.getElementById("btnNext");
+
+    let pdfDoc   = null;
+    let currPage = 1;
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+    async function renderPage(num) {
+      const page     = await pdfDoc.getPage(num);
+      const viewport = page.getViewport({ scale: window.devicePixelRatio > 1 ? 1.5 : 1.8 });
+      const canvas   = document.createElement("canvas");
+      const ctx      = canvas.getContext("2d");
+      canvas.width   = viewport.width;
+      canvas.height  = viewport.height;
+      canvas.style.width  = "100%";
+      canvas.style.maxWidth = "460px";
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      return canvas;
+    }
+
+    async function loadPDF() {
+      try {
+        pdfDoc = await pdfjsLib.getDocument({ url: PDF_URL, withCredentials: false }).promise;
+        loading.style.display = "none";
+
+        // Render all pages
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+          const canvas = await renderPage(i);
+          wrap.appendChild(canvas);
+        }
+
+        if (pdfDoc.numPages > 1) {
+          controls.style.display = "flex";
+          updateControls();
+        }
+
+      } catch (err) {
+        loading.innerHTML = `
+          <div style="text-align:center;padding:20px">
+            <div style="font-size:32px;margin-bottom:12px">📄</div>
+            <p style="color:#7D8590;font-size:13px;margin-bottom:16px">Tap below to open your receipt</p>
+            <a href="${PDF_URL}" target="_blank" style="background:#2DD4BF;color:#0D1117;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">View Receipt PDF</a>
+          </div>`;
+      }
+    }
+
+    function changePage(delta) {
+      currPage = Math.min(Math.max(currPage + delta, 1), pdfDoc.numPages);
+      const canvases = wrap.querySelectorAll("canvas");
+      canvases.forEach((c, i) => {
+        c.style.display = (i + 1 === currPage) ? "block" : "none";
+      });
+      updateControls();
+    }
+
+    function updateControls() {
+      pageInfo.textContent = `Page ${currPage} / ${pdfDoc.numPages}`;
+      btnPrev.disabled = currPage <= 1;
+      btnNext.disabled = currPage >= pdfDoc.numPages;
+    }
+
     function shareReceipt() {
       if (navigator.share) {
         navigator.share({ title: "My Receipt from {{ store_name }}", url: window.location.href });
@@ -97,6 +432,8 @@
         navigator.clipboard.writeText(window.location.href).then(() => alert("Link copied!"));
       }
     }
+
+    loadPDF();
   </script>
 </body>
 </html>
