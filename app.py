@@ -16,6 +16,7 @@ import boto3
 import hashlib
 import secrets
 import string
+import requests as req_lib
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -337,7 +338,6 @@ def create_receipt():
 @app.route("/pdf/<code>")
 def pdf_proxy(code):
     """Proxy the PDF through the backend to avoid CORS issues."""
-    import requests as req
     from flask import Response, stream_with_context
 
     sb  = get_supabase()
@@ -352,7 +352,7 @@ def pdf_proxy(code):
         abort(410)
 
     s3_url = receipt["s3_url"]
-    r = req.get(s3_url, stream=True, timeout=15)
+    r = req_lib.get(s3_url, stream=True, timeout=15)
 
     return Response(
         stream_with_context(r.iter_content(chunk_size=8192)),
