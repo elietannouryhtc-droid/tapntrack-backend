@@ -154,6 +154,22 @@ def provision_store_aws(slug: str):
         }
     )
 
+    # Add CORS so PDF.js can load receipts in the browser
+    s3.put_bucket_cors(
+        Bucket=bucket_name,
+        CORSConfiguration={
+            "CORSRules": [{
+                "AllowedHeaders": ["*"],
+                "AllowedMethods": ["GET"],
+                "AllowedOrigins": [
+                    "https://tapntrack.com",
+                    "https://tapntrack-backend.onrender.com"
+                ],
+                "ExposeHeaders": []
+            }]
+        }
+    )
+
     # Create IAM user
     iam.create_user(UserName=iam_user)
 
